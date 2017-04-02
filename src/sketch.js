@@ -101,7 +101,7 @@ function draw() {
     , phoenix;
 
   // If it's time for extinction, change the target and update the gui
-  if (!(frameCount % (targetV * 60 * 60))) {
+  if (!(frameCount % (targetV * 60 * 60)) && targetV > 0) {
     target.color = rColor();
     guiSim.setValue('Target Color', rgb2hex(target.color.levels[0], target.color.levels[1], target.color.levels[2]))
   }

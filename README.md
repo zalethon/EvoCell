@@ -3,13 +3,13 @@ EvoCell generates art using a simple genetic algorithm.
 
 You can play with it at <https://zalethon.github.io/EvoCell/>.
 
+It is meant to be viewed in Full Screen.
+
 The Menu is automatically active when the page loads.
 The 'simulation' is paused whenever the Menu is active.
 
 ## Simulation
 EvoCell starts with a grid of Cells, each having a random color.
-
-It is meant to be viewed in Full Screen.
 
 EvoCell tries to reach a framerate of 60fps. Each frame, some number of
 Cells is killed based on their fitness, and then some number of Cells
