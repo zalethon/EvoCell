@@ -3,10 +3,13 @@ EvoCell generates art using a simple genetic algorithm.
 
 You can play with it at <https://zalethon.github.io/EvoCell/>.
 
-It is meant to be viewed in Full Screen.
+It is meant to be viewed in Full Screen. Press `I` to toggle the Menu.
 
 The Menu is automatically active when the page loads.
 The 'simulation' is paused whenever the Menu is active.
+
+WARNING: It's probably best not to make Cells much smaller than 12px.
+It will slow down even the most powerful computer.
 
 ## Simulation
 EvoCell starts with a grid of Cells, each having a random color.
@@ -34,13 +37,15 @@ To activate the Menu, press `I`.
         Change the colour Dead cells are tinted with. Default: black
     +   Dead Cell Opacity
 
-        The lower the number, the darker the dead cells. Default: 110
+        The lower the number, the darker the dead cells. Default: 64
     +   Cell Size (Pixels)
 
         Each cell's size in pixels. The list is based on your display
         size, and it starts with the ninth option.
         Note that very small Cell sizes might make the simulation run
-        very slowly. Default: items[8]
+        very slowly, or crash. I have a relatively powerful computer,
+        and anything smaller than 12px at 1920x1080 bogs it down!
+        Default: items[8]
 +   Simulation
     +   Target Color
 
@@ -66,6 +71,10 @@ To activate the Menu, press `I`.
         Equivalent to setting `Respawn Rate` to 1, but the Cells are
         still tinted when they die. You get some nice pictures that way.
         Default: ON
+    +   Count Diagonal neighbors
+
+        Include diagonal neighbors when respawning.
+        Increases mating pool, prevents squares from forming.
     +   Reset
 
         Reset the simulation, keeping settings the same.

@@ -9,6 +9,36 @@ function Cell(x, y, color) {
   this.x = x;
   this.y = y;
   this.dead = false;
+  this.edges = 0;
+  /*
+   * this.edges is a 4-bit number representing which edges the Cell
+   * happens to touch.
+   *
+   * Bits:
+   * 1 - Top
+   * 2 - Right
+   * 4 - Bottom
+   * 8 - Left
+   *
+   * Some bitwise operators:
+   * Cell.edges     = 12 (Bottom and Left)
+   * Cell.edges & 1 = 0  (& =    has bit(s))
+   * Cell.edges ^ 4 = 8  (^ = toggle bit(s))
+   * Cell.edges | 1 = 9  (| =    add bit(s))
+   */
+  if (this.y == 0) {
+    this.edges = this.edges | 1;
+  }
+  if (this.x == w / cellSize - 1) {
+    this.edges = this.edges | 2;
+  }
+  if (this.y == h / cellSize - 1) {
+    this.edges = this.edges | 4;
+  }
+  if (this.x == 0) {
+    this.edges = this.edges | 8
+  }
+
 
   this.show = function() { // draw/redraw the cell
     if (this.dead) {
@@ -23,12 +53,50 @@ function Cell(x, y, color) {
     return this.dead;
   }
 
-  this.neighbors = function() { // return an array[top, right, bottom, left] of neighboring cells, and set this.ns[]
-    let a = []; // array of neighboring Cell objects
-    if (this.y != 0) { a.push(cells[c2i([this.x, this.y-1], w / cellSize)]); } else { a.push(null); }
-    if (this.x != w / cellSize - 1) { a.push(cells[c2i([this.x+1, this.y], w / cellSize)]); } else { a.push(null); }
-    if (this.y != h / cellSize - 1) { a.push(cells[c2i([this.x, this.y+1], w / cellSize)]); } else { a.push(null); }
-    if (this.x != 0) { a.push(cells[c2i([this.x-1, this.y], w / cellSize)]); } else { a.push(null); }
+  // return an array of neighboring cells, starting at the top and
+  // going clockwise.
+  this.neighbors = function() {
+    let a = [];
+    if (this.edges & 1) {
+      a.push(null);
+    } else {
+      a.push( cells[c2i( [this.x, this.y - 1], w / cellSize )] );
+    }
+    if (!(this.edges & 3) && diagNeighbors) {
+      a.push( cells[c2i( [this.x + 1, this.y - 1], w / cellSize)] );
+    } else {
+      a.push(null);
+    }
+    if (this.edges & 2) {
+      a.push(null);
+    } else {
+      a.push( cells[c2i( [this.x + 1, this.y], w / cellSize )] );
+    }
+    if (!(this.edges & 6) && diagNeighbors) {
+      a.push( cells[c2i( [this.x + 1, this.y + 1], w / cellSize)] );
+    } else {
+      a.push(null);
+    }
+    if (this.edges & 4) {
+      a.push(null);
+    } else {
+      a.push( cells[c2i( [this.x, this.y + 1], w / cellSize )] );
+    }
+    if (!(this.edges & 12) && diagNeighbors) {
+      a.push( cells[c2i( [this.x - 1, this.y + 1], w / cellSize)] );
+    } else {
+      a.push(null);
+    }
+    if (this.edges & 8) {
+      a.push(null);
+    } else {
+      a.push( cells[c2i( [this.x - 1, this.y], w / cellSize )] );
+    }
+    if (!(this.edges & 9) && diagNeighbors) {
+      a.push( cells[c2i( [this.x - 1, this.y - 1], w / cellSize)] );
+    } else {
+      a.push(null);
+    }
     return a;
   }
 

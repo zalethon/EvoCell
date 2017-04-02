@@ -40,13 +40,14 @@ var   w
     , mutRate = 25
     , respawnRate = .8
     , deadViable = true
+    , target       // Cell object. target.color is settable in GUI
+    , diagNeighbors = false
 
     // GUI variables
     , guiDisp
     , guiSim
     , guiInfo
     , guiVisible = true
-    , target       // Cell object. target.color is settable in GUI
 
     // non-GUI variables
     , cells = []
@@ -77,6 +78,7 @@ function setup() {
   .addRange('Extinction Frequency (Minutes)', 0, 60, 1.5, .5, function(val) { targetV = val; })
   .addRange('Respawn Rate', 0, 1, .2, .05,                    function(val) { respawnRate = 1 - val; })
   .addBoolean('Dead Cells Viable', true,                      function(val) { deadViable = !deadViable; })
+  .addBoolean('Count Diagonal Neighbors', false,              function(val) { diagNeighbors = !diagNeighbors; })
   .addButton('Reset',                                         initCells );
 
   guiInfo = QuickSettings.create(w - 300, 100, 'Information')
@@ -120,7 +122,7 @@ function draw() {
       phoenix = active.regrow();
       if (phoenix) {
         reshow.push(phoenix);
-      } else {
+      } else if (active) {
         deadc.push(active);
       }
     }
