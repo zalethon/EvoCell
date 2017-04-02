@@ -38,6 +38,8 @@ var   w
     , cellSize
     , targetV = 1.5
     , mutRate = 25
+    , respawnRate = .8
+    , deadViable = true
 
     // GUI variables
     , guiDisp
@@ -72,7 +74,10 @@ function setup() {
   .addColor('Target Color', rgb2hex(target.color.levels[0], target.color.levels[1], target.color.levels[2]),
                                                               function(val) { target.color = color(val); })
   .addRange('Mutation Rate', 0, 255, 25, 1,                   function(val) { mutRate = val; })
-  .addRange('Extinction Frequency (Minutes)', 0, 60, 1.5, .5, function(val) { targetV = val; });
+  .addRange('Extinction Frequency (Minutes)', 0, 60, 1.5, .5, function(val) { targetV = val; })
+  .addRange('Respawn Rate', 0, 1, .2, .05,                    function(val) { respawnRate = 1 - val; })
+  .addBoolean('Dead Cells Viable', true,                      function(val) { deadViable = !deadViable; })
+  .addButton('Reset',                                         initCells );
 
   guiInfo = QuickSettings.create(w - 300, 100, 'Information')
   .addText("FPS", frameRate())
@@ -81,39 +86,42 @@ function setup() {
   // Initialize some more globals
   deadTint = color(guiDisp.getValue('Dead Cell Tint'));
   guiDisp.setValue('Cell Size (Pixels)', {index:8});
-  // deadOpacity, mutRate, and targetV defaults set in declaration
   // Target colour set in target's assignment above
+  // Other globals are set at declaration
 
   noLoop(); // Don't auto-start
 }
 
 // Main draw() loop, looped by p5
 function draw() {
-  let reshow = []
+  var reshow = []
     , active
     , i = 0
-    , lim = (w / cellSize * h / cellSize / 16);
+    , lim = (w / cellSize * h / cellSize / 16)
+    , phoenix;
 
   // If it's time for extinction, change the target and update the gui
   if (!(frameCount % (targetV * 60 * 60))) {
+    target.color = rColor();
     guiSim.setValue('Target Color', rgb2hex(target.color.levels[0], target.color.levels[1], target.color.levels[2]))
   }
 
   // Main sub-loop
-  for ( ; i < lim ; i++ ) { // For each of one-sixteenth of all Cells,
-    active = cells[floor(random(cells.length))];                   //  Set our working Cell to a random one
-    if (random() > fitness(active,target.color) && !active.dead) {//   If the Cell happens to be unfit, and isn't already dead,
-      active.dead = true;                                        //    then kill it,
-      reshow.push(active);                                      //     have it redrawn at the end of the loop,
-      deadc.push(active);                                      //      and add it to the list of dead cells.
+  for ( ; i < lim ; i++ ) {
+    active = cells[floor(random(cells.length))];
+    if (random() > fitness(active,target.color) && !active.dead) {
+      active.dead = true;
+      reshow.push(active);
+      deadc.push(active);
     }
 
-
-    if (random() > .8 && deadc.length > 0) {                    // Flip a weighted coin. If it's heads, (60% chance)
-      active = deadc.splice(floor(random(deadc.length)),1)[0]; // change the active cell to a random dead Cell, and remove it from the array of dead Cells.
-      var born = active.regrow();                           // Then regrow it!
-      if (born) {                                          // If the Cell actually was regrown, (if it had neighbors, or if it existed in the first place)
-        reshow.push(born);                          // and have them redrawn at the end of the loop also.
+    if (random() > respawnRate && deadc.length > 0) {
+      active = deadc.splice(floor(random(deadc.length)),1)[0];
+      phoenix = active.regrow();
+      if (phoenix) {
+        reshow.push(phoenix);
+      } else {
+        deadc.push(active);
       }
     }
   }
@@ -130,7 +138,13 @@ function initCells(obj) {
   var i = 0
     , lim
     , xy;
-  cellSize = obj.value;
+  switch (obj.value) {
+    case "Reset":
+    break;
+    default:
+      cellSize = obj.value;
+    break;
+  }
   lim = (w / cellSize) * (h / cellSize);
   cells.splice(0,cells.length);
   deadc.splice(0,deadc.length);
@@ -144,6 +158,7 @@ function initCells(obj) {
 }
 
 function splotch(cell, color, arr, dist) {
+  var i;
   cell.color = color;
   cell.mutate(mutRate);
   arr.push(cell);

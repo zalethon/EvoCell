@@ -45,7 +45,7 @@ function Cell(x, y, color) {
       p2 = n.splice( floor( random( n.length ) ), 1)[0];
     }
 
-    if (p1 != null && p2 != null) {
+    if (p1 != null && p2 != null && ((!(p1.dead) && !(p2.dead)) || deadViable) ) {
       this.color = recomb(p1, p2);
       this.dead = false;
       this.mutate(mutRate);
@@ -55,7 +55,7 @@ function Cell(x, y, color) {
     }
   }
 
-  this.mutate = function(obj, num) {
+  this.mutate = function(num) {
     let i = floor(random(3))
   // p5.Color objects are supposed to be immutable. We'll fix this someday
     this.color.levels[i] = Math.abs(floor((this.color.levels[i] + floor(random(-num, num+1)))) % 255);
@@ -76,13 +76,12 @@ function Cell(x, y, color) {
 
 function recomb(cellA, cellB) { // return a new colour from cellA's' and cellB's colours
   var arr = []
-    , i = 0; //  return lerpColor(cellA.color, cellB.color, amt);  // gradient
+    , i = 0;
 
   for ( ; i<3; i++) {
-
     if(floor(random(2)) >=1) {
       arr.push(cellA.color.levels[i]);
-    } else{
+    } else {
       arr.push(cellB.color.levels[i]);
     }
   }
