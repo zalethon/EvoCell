@@ -204,9 +204,9 @@ function keyPressed() {
 }
 
 function mouseClicked() {
-  let arr = [];
-  let x = floor(mouseX / cellSize);
-  let y = floor(mouseY / cellSize);
+  var arr = []
+    , x = floor(mouseX / cellSize)
+    , y = floor(mouseY / cellSize);
   if (!guiVisible) { splotch(cells[c2i([x, y], w / cellSize)], rColor(), arr, floor((w / cellSize) / 16)); }
 
 }
@@ -222,7 +222,7 @@ function gcd(a, b) {
 
 // Return an array of all common factors of a and b
 function allcd(a, b) {
-  let n = gcd(a, b)
+  var n = gcd(a, b)
     , arr = [1]
     , i = 2;
 
