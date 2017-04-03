@@ -56,7 +56,7 @@ function Cell(x, y, color) {
   // return an array of neighboring cells, starting at the top and
   // going clockwise.
   this.neighbors = function() {
-    let a = [];
+    var a = [];
     if (this.edges & 1) {
       a.push(null);
     } else {
@@ -101,8 +101,8 @@ function Cell(x, y, color) {
   }
 
   this.regrow = function() { // Regrow a cell.
-    let n = this.neighbors();
-    let p1 = null
+    var n = this.neighbors()
+      , p1 = null
       , p2 = null;
 
     while (p1 === null && n.length > 0) {
@@ -124,7 +124,7 @@ function Cell(x, y, color) {
   }
 
   this.mutate = function(num) {
-    let i = floor(random(3))
+    var i = floor(random(3));
   // p5.Color objects are supposed to be immutable. We'll fix this someday
     this.color.levels[i] = Math.abs(floor((this.color.levels[i] + floor(random(-num, num+1)))) % 255);
   }
