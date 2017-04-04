@@ -62,7 +62,7 @@ function setup()
   // TODO: make width and height settable in the GUI?
   w     = displayWidth;
   h     = displayHeight;
-  sizes = allcd(w, h);
+  sizes = allcd(w, w); // sloppy fix
   sizes = sizes.slice(5);
   // set up a random cell with a target color. Not sure why.
   target      = new Cell(-1,-1,rColor());
