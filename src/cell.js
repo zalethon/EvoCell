@@ -1,16 +1,21 @@
-/** This file contains code used mostly by or on Cell objects */
+/**
+ * @copyright Copyright (C) 2017 Schuyler B. Kelley
+ * @license GPL-3.0
+ *
+ * This file contains code used mostly by or on Cell objects
+ */
 
 'use strict'
 
 /** Cell */
-function Cell(x, y, color) {
-
+function Cell(x, y, color)
+{
   this.color = color;
   this.x = x;
   this.y = y;
   this.dead = false;
-  this.edges = 0;
-  /*
+
+   /*
    * this.edges is a 4-bit number representing which edges the Cell
    * happens to touch.
    *
@@ -26,6 +31,7 @@ function Cell(x, y, color) {
    * Cell.edges ^ 4 = 8  (^ = toggle bit(s))
    * Cell.edges | 1 = 9  (| =    add bit(s))
    */
+  this.edges = 0;
   if (this.y == 0) {
     this.edges = this.edges | 1;
   }
@@ -39,12 +45,14 @@ function Cell(x, y, color) {
     this.edges = this.edges | 8
   }
 
-
-  this.show = function() { // draw/redraw the cell
+  // draw/redraw the cell
+  this.show = function()
+  {
     if (this.dead) {
       fill(deadTint);
       rect(x * cellSize, y * cellSize, cellSize, cellSize);
-      fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], deadOpacity);
+      fill(this.color.levels[0], this.color.levels[1]
+        , this.color.levels[2], deadOpacity);
     } else {
       fill(this.color);
     }
@@ -55,8 +63,9 @@ function Cell(x, y, color) {
 
   // return an array of neighboring cells, starting at the top and
   // going clockwise.
-  this.neighbors = function() {
-    let a = [];
+  this.neighbors = function()
+  {
+    var a = [];
     if (this.edges & 1) {
       a.push(null);
     } else {
@@ -100,9 +109,11 @@ function Cell(x, y, color) {
     return a;
   }
 
-  this.regrow = function() { // Regrow a cell.
-    let n = this.neighbors();
-    let p1 = null
+  // Respawn the cell
+  this.regrow = function()
+  {
+    var n = this.neighbors()
+      , p1 = null
       , p2 = null;
 
     while (p1 === null && n.length > 0) {
@@ -113,7 +124,9 @@ function Cell(x, y, color) {
       p2 = n.splice( floor( random( n.length ) ), 1)[0];
     }
 
-    if (p1 != null && p2 != null && ((!(p1.dead) && !(p2.dead)) || deadViable) ) {
+    if (p1 != null && p2 != null
+      && ((!(p1.dead)
+      && !(p2.dead)) || deadViable) ) {
       this.color = recomb(p1, p2);
       this.dead = false;
       this.mutate(mutRate);
@@ -123,26 +136,32 @@ function Cell(x, y, color) {
     }
   }
 
-  this.mutate = function(num) {
-    let i = floor(random(3))
+  this.mutate = function(num)
+  {
+    var i = floor(random(3))
   // p5.Color objects are supposed to be immutable. We'll fix this someday
     this.color.levels[i] = Math.abs(floor((this.color.levels[i] + floor(random(-num, num+1)))) % 255);
   }
 
-  this.red = function() {
+  this.red = function()
+  {
     return red(this.color);
   }
 
-  this.green = function() {
+  this.green = function()
+  {
     return green(this.color);
   }
 
-  this.blue = function() {
+  this.blue = function()
+  {
     return blue(this.color);
   }
 }
 
-function recomb(cellA, cellB) { // return a new colour from cellA's' and cellB's colours
+// return a new colour from cellA's' and cellB's colours
+function recomb(cellA, cellB)
+{
   var arr = []
     , i = 0;
 
@@ -159,21 +178,27 @@ function recomb(cellA, cellB) { // return a new colour from cellA's' and cellB's
     return color(arr[0], arr[1], arr[2]);
   }
 }
-
-function fitness(cell, opt, func) { // return the fitness of a cell in relation to an OPTimal target. (opt is p5.color object)
-  var f = dist3d(opt.levels[0],opt.levels[1],opt.levels[2],cell.color.levels[0],cell.color.levels[1],cell.color.levels[2]);
+// return the fitness of a cell in relation to an OPTimal target.
+// (opt is p5.color object)
+function fitness(cell, opt, func)
+{
+  var f = dist3d(opt.levels[0], opt.levels[1], opt.levels[2]
+              , cell.color.levels[0], cell.color.levels[1]
+              , cell.color.levels[2]);
   if (func === undefined) {
     func = "0";
   }
 
   switch (func) {
-    case "0":
-      return Math.min( Math.max( Math.log( MAX_FITNESS / (f + 20)) / Math.log( MAX_FITNESS ) * 2.5, 0 ), 1);
+    case "0": // y = log2( m / ( x + 20 )) / log2( m ) * 2.5
+      return Math.min( Math.max( Math.log( MAX_FITNESS / (f + 20))
+                              / Math.log( MAX_FITNESS ) * 2.5, 0 )
+                    , 1);
       break;
-    case "1":
+    case "1": // y = ( m  - x )^2 / m^2
       return Math.pow( MAX_FITNESS - f, 2 ) / Math.pow( MAX_FITNESS, 2 );
       break;
-    case "2":
+    case "2": // y = 1 - ( x / m ) - .05
       return Math.max( 1 - f / MAX_FITNESS - .05, 0 );
       break;
   }

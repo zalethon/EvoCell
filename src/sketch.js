@@ -23,43 +23,49 @@
  * @author Schuyler B. Kelley <zalethon@gmail.com>
  */
 
-    // TODO: improve javascript
-    //       improve documentation
-    //       improve everything
-
-    // Necessary globals...
 'use strict'
-var   w
-    , h
 
-    // Changable in GUI
-    , deadTint
-    , deadOpacity = 110
-    , cellSize
-    , targetV = 1.5
-    , mutRate = 25
-    , respawnRate = .8
-    , deadViable = true
-    , target       // Cell object. target.color is settable in GUI
-    , diagNeighbors = false
+  // TODO: improve javascript
+  //       improve documentation
+  //       improve everything
 
-    // GUI variables
-    , guiDisp
-    , guiSim
-    , guiInfo
-    , guiVisible = true
+  // Necessary globals...
+var w
+  , h
 
-    // non-GUI variables
-    , cells = []
-    , deadc = []    // ARR  cellSize, cells, dead
-    , MAX_FITNESS = dist3d(0,0,0,255,255,255);
+  // Changable in GUI
+  , deadTint
+  , deadOpacity = 64
+  , cellSize
+  , targetV = 1.5
+  , mutRate = 25
+  , respawnRate = .8
+  , deadViable = true
+  , target       // Cell object. target.color is settable in GUI
+  , diagNeighbors = false
 
-function setup() {
+  // GUI variables
+  , guiDisp
+  , guiSim
+  , guiInfo
+  , guiVisible = true
+  , sizes
+
+  // non-GUI variables
+  , cells = []
+  , deadc = []    // ARR  cellSize, cells, dead
+  , MAX_FITNESS = dist3d(0,0,0,255,255,255);
+
+function setup()
+{
   // Initialize some globals
-  // TODO: make width and height settable in the GUI
-  w           = displayWidth;
-  h           = displayHeight
-  target      = new Cell(-1,-1,rColor()); // set up a random cell with a target color. Not sure why
+  // TODO: make width and height settable in the GUI?
+  w     = displayWidth;
+  h     = displayHeight;
+  sizes = allcd(w, h);
+  sizes = sizes.slice(5);
+  // set up a random cell with a target color. Not sure why.
+  target      = new Cell(-1,-1,rColor());
 
   // Create the canvas, and do some other initializing
   createCanvas(w,h);
@@ -67,27 +73,40 @@ function setup() {
 
   // Initialize some GUIs
   guiDisp = QuickSettings.create(100,100,'Display')
-  .addColor('Dead Cell Tint', "#000000",          function(val) { deadTint = color(val); } )
-  .addRange('Dead Cell Opacity', 0, 255, 110, 1,  function(val) { deadOpacity = val; } )
-  .addDropDown('Cell Size (Pixels)', allcd(w, h), initCells );
+  .addColor('Dead Cell Tint', "#000000",function(val)
+                                        { deadTint = color(val); } )
+  .addRange('Dead Cell Opacity', 0, 255, 110, 1,function(val)
+                                                { deadOpacity = val; } )
+  .addDropDown('Cell Size (Pixels)', sizes, initCells );
 
-  guiSim = QuickSettings.create(100, 100 + guiDisp._content.clientHeight + guiDisp._titleBar.clientHeight, 'Simulation')
-  .addColor('Target Color', rgb2hex(target.color.levels[0], target.color.levels[1], target.color.levels[2]),
-                                                              function(val) { target.color = color(val); })
-  .addRange('Mutation Rate', 0, 255, 25, 1,                   function(val) { mutRate = val; })
-  .addRange('Extinction Frequency (Minutes)', 0, 60, 1.5, .5, function(val) { targetV = val; })
-  .addRange('Respawn Rate', 0, 1, .2, .05,                    function(val) { respawnRate = 1 - val; })
-  .addBoolean('Dead Cells Viable', true,                      function(val) { deadViable = !deadViable; })
-  .addBoolean('Count Diagonal Neighbors', false,              function(val) { diagNeighbors = !diagNeighbors; })
-  .addButton('Reset',                                         initCells );
+
+  guiSim = QuickSettings.create(100,100 + guiDisp._content.clientHeight
+                                  + guiDisp._titleBar.clientHeight
+                              , 'Simulation')
+  .addColor('Target Color', rgb2hex(target.color.levels[0]
+                                  , target.color.levels[1]
+                                  , target.color.levels[2])
+                                  , function(val)
+                                    { target.color = color(val); } )
+  .addRange('Mutation Rate', 0, 255, 25, 1, function(val) { mutRate = val; } )
+  .addRange('Extinction Frequency (Minutes)', 0, 60, 1.5, .5
+          , function(val) { targetV = val; } )
+  .addRange('Respawn Rate', 0, 1, .2, .05,function(val)
+                                          { respawnRate = 1 - val; } )
+  .addBoolean('Dead Cells Viable', true,function(val)
+                                        { deadViable = !deadViable; } )
+  .addBoolean('Count Diagonal Neighbors', false
+            , function(val) { diagNeighbors = !diagNeighbors; } )
+  .addButton('Reset', initCells );
 
   guiInfo = QuickSettings.create(w - 300, 100, 'Information')
-  .addText("FPS", frameRate())
-  .addText("Extinction Countdown", ((targetV * 60 * 60) - frameCount % (targetV * 60 * 60)));
+  .addText("FPS", "")
+  .addText("Extinction Countdown", "")
+  .addText("Dead Cell Count", "");
 
   // Initialize some more globals
   deadTint = color(guiDisp.getValue('Dead Cell Tint'));
-  guiDisp.setValue('Cell Size (Pixels)', {index:8});
+  guiDisp.setValue('Cell Size (Pixels)', {index:3});
   // Target colour set in target's assignment above
   // Other globals are set at declaration
 
@@ -95,17 +114,20 @@ function setup() {
 }
 
 // Main draw() loop, looped by p5
-function draw() {
+function draw()
+{
   var reshow = []
     , active
     , i = 0
-    , lim = (w / cellSize * h / cellSize / 16)
+    , lim = (w / cellSize * h / cellSize / 32)
     , phoenix;
 
   // If it's time for extinction, change the target and update the gui
   if (!(frameCount % (targetV * 60 * 60)) && targetV > 0) {
     target.color = rColor();
-    guiSim.setValue('Target Color', rgb2hex(target.color.levels[0], target.color.levels[1], target.color.levels[2]))
+    guiSim.setValue('Target Color', rgb2hex(target.color.levels[0]
+                                            , target.color.levels[1]
+                                            , target.color.levels[2] ) )
   }
 
   // Main sub-loop
@@ -136,7 +158,8 @@ function draw() {
 
 // (Re-)Initialize cells[] and deadc[]
 // Takes an Object passed into it by a quicksettings callback
-function initCells(obj) {
+function initCells(obj)
+{
   var i = 0
     , lim
     , xy;
@@ -159,21 +182,30 @@ function initCells(obj) {
   }
 }
 
-function splotch(cell, color, arr, dist) {
-  var i;
+function splotch(cell, color, arr, dist)
+{
+  var i
+    , di; // deadc index
   cell.color = color;
   cell.mutate(mutRate);
   arr.push(cell);
+  di = deadc.indexOf(cell);
+  if (di >= 0) {
+    deadc.splice(deadc.indexOf(cell),1);
+    cell.dead = false;
+  }
   cell.show();
   for (i of cell.neighbors()) {
     if (i === null) { continue; }
-    if (arr.indexOf(i) < 0 && dist3d(i.x, i.y, 0, arr[0].x, arr[0].y, 0) <= dist) {
+    if (arr.indexOf(i) < 0
+        && dist3d(i.x, i.y, 0, arr[0].x, arr[0].y, 0) <= dist) {
       splotch(i, cell.color, arr, dist);
     }
   }
 }
 
-function toggleMenu() {
+function toggleMenu()
+{
   if (guiVisible) {
     guiDisp.hide();
     guiSim.hide();
@@ -184,7 +216,10 @@ function toggleMenu() {
     guiSim.show();
     guiInfo.show();
     guiInfo.setValue('FPS', frameRate());
-    guiInfo.setValue('Extinction Countdown', (targetV * 60 * 60) - frameCount % (targetV * 60 * 60));
+    guiInfo.setValue('Extinction Countdown'
+                    , Math.round(((targetV * 3600 - frameCount
+                                % (targetV * 3600)) / 3600) * 100) / 100);
+    guiInfo.setValue('Dead Cell Count', deadc.length);
     noLoop();
   }
 
@@ -195,7 +230,8 @@ function toggleMenu() {
  * Events handled by p5
  */
 
-function keyPressed() {
+function keyPressed()
+{
   switch (key) {
     case 'I':
       toggleMenu();
@@ -203,11 +239,15 @@ function keyPressed() {
   }
 }
 
-function mouseClicked() {
-  let arr = [];
-  let x = floor(mouseX / cellSize);
-  let y = floor(mouseY / cellSize);
-  if (!guiVisible) { splotch(cells[c2i([x, y], w / cellSize)], rColor(), arr, floor((w / cellSize) / 16)); }
+function mouseClicked()
+{
+  var arr = []
+    , x = floor(mouseX / cellSize)
+    , y = floor(mouseY / cellSize);
+  if (!guiVisible) {
+    splotch(cells[c2i([x, y], w / cellSize)], rColor(), arr
+          , floor((w / cellSize) / 16));
+  }
 
 }
 
@@ -216,13 +256,19 @@ function mouseClicked() {
  */
 
 // Return the greatest common factor of a and b
-function gcd(a, b) {
-  if (a == 0) { return b; } else { return gcd(b % a, a); }
+function gcd(a, b)
+{
+  if (a == 0) {
+    return b;
+  } else {
+    return gcd(b % a, a);
+  }
 }
 
 // Return an array of all common factors of a and b
-function allcd(a, b) {
-  let n = gcd(a, b)
+function allcd(a, b)
+{
+  var n = gcd(a, b)
     , arr = [1]
     , i = 2;
 
@@ -236,22 +282,28 @@ function allcd(a, b) {
 }
 
 // Return the distance between two points in a 3D space
-function dist3d(x1, y1, z1, x2, y2, z2) {
-  return Math.sqrt(Math.pow(Math.abs(x1 - x2),2) + Math.pow(Math.abs(y1 - y2),2) + Math.pow(Math.abs(z1 - z2),2));
+function dist3d(x1, y1, z1, x2, y2, z2)
+{
+  return Math.sqrt(Math.pow(Math.abs(x1 - x2),2)
+                  + Math.pow(Math.abs(y1 - y2),2)
+                  + Math.pow(Math.abs(z1 - z2),2));
 }
 
 // Return an array index from an array [x, y] representing coordinate
-function c2i(xy, cols) {
+function c2i(xy, cols)
+{
   return xy[0] + xy[1] * cols;
 }
 
 // Return an array [x, y] from an array index
-function i2c(i, cols) {
+function i2c(i, cols)
+{
    return [i % cols, floor(i / cols)];
 }
 
 // Return a random rgb p5.Color object
-function rColor() {
+function rColor()
+{
   return color(random(0,256), random(0, 256), random(0,256));
 }
 
@@ -260,21 +312,25 @@ function rColor() {
  */
 
 // Converts a number to hex with .toString()
-function comp2hex(c) {
+function comp2hex(c)
+{
   var hex = c.toString(16);
   return hex.length == 1 ? "0" + hex : hex;
 }
 
 // Converts three 8-bit numbers to a hex color
-function rgb2hex(r, g, b) {
+function rgb2hex(r, g, b)
+{
   return "#" + comp2hex(r) + comp2hex(g) + comp2hex(b);
 }
 
 // Converts a hex color to RGB values
-function hex2rgb(hex) {
+function hex2rgb(hex)
+{
   // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
   var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+  hex = hex.replace(shorthandRegex, function(m, r, g, b)
+  {
     return r + r + g + g + b + b;
   });
 
@@ -283,5 +339,5 @@ function hex2rgb(hex) {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : null;
+  }  : null;
 }
