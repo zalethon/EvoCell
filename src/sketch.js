@@ -248,7 +248,6 @@ function mouseClicked()
     splotch(cells[c2i([x, y], w / cellSize)], rColor(), arr
           , floor((w / cellSize) / 16));
   }
-
 }
 
 /*

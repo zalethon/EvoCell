@@ -138,7 +138,7 @@ function Cell(x, y, color)
 
   this.mutate = function(num)
   {
-    var i = floor(random(3))
+    var i = floor(random(3));
   // p5.Color objects are supposed to be immutable. We'll fix this someday
     this.color.levels[i] = Math.abs(floor((this.color.levels[i] + floor(random(-num, num+1)))) % 255);
   }
